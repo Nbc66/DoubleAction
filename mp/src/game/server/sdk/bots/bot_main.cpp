@@ -88,12 +88,14 @@ const char* g_aszBotNames[] =
 	"Bromosapien",
 	"Broseph Stalin",
 	"Abroham Lincoln",
+	"Billy Bro Thornton",
 	"Brorack Brobama",
 	"Bro Biden",
 	"Broranosaurus rex",
 	"Brohemoth",
 	"Broseph Gordon Levitt",
 	"Brobi-wan Kenobi",
+	"Kylie Bronogue",
 	"Marco Brolo",
 	"Edgar Allan Bro",
 	"Brozo the Clown",
@@ -145,6 +147,9 @@ const char* g_aszBotNames[] =
 	"Kurt Brobain",
 	"Broald Dahl",
 	"Scarlett Brohansen",
+	"Patty Bro'brien",
+	"Moritz von Broswald",
+	"Stray Brobay",
 };
 
 

@@ -1523,6 +1523,59 @@ int CSDKPlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 			}
 		}
 
+		if ( info.GetDamageType() & DMG_BULLET ){ // the player has been shot
+
+			// apply damage falloff
+			// the weapon that did the hurting
+			CWeaponSDKBase* pWeapon = dynamic_cast<CWeaponSDKBase*>(info.GetWeapon());
+			CSDKWeaponInfo* pWeaponInfo = pWeapon?CSDKWeaponInfo::GetWeaponInfo(pWeapon->GetWeaponID()):NULL;
+			if( pWeaponInfo ){ // just in case
+				// get the distance from the attacker to self
+				Vector vecToAttacker = GetAbsOrigin() - info.GetAttacker()->GetAbsOrigin();
+				float flDistance = vecToAttacker.Length();
+				DevMsg("Distance to attacker: %f\n", flDistance);
+
+				DevMsg("Effective range: %f\n", pWeaponInfo->m_flEffectiveRange);
+
+				// calculate falloff distance = flDistance minus the weaponinfo's effective range
+				float flFalloffDistance = flDistance - pWeaponInfo->m_flEffectiveRange;
+
+				// if falloff distance is negative, set it to zero 
+				// because we are within effective range, there will be no falloff
+				if( flFalloffDistance < 0.0f ){
+					flFalloffDistance = 0.0f;
+				}
+
+				DevMsg("Falloff over: %f\n", flFalloffDistance);
+
+				// our falloff damage is that distance times the weaponinfo's falloff rate
+				float flFalloffDamage = flFalloffDistance * pWeaponInfo->m_flFalloffRate;
+				
+				DevMsg("Damage before falloff: %f\n", flDamage);
+
+				// final damage is flDamage less falloff damage
+				flDamage -= flFalloffDamage;
+
+				// clamp to weaponinfo minDamage
+				if ( flDamage < pWeaponInfo->m_flMinDamage )
+					flDamage = pWeaponInfo->m_flMinDamage;
+
+				DevMsg("Damage after falloff: %f\n", flDamage);
+			}
+
+			// if the player has been shot in the back, reduce the damage by a heap
+			Vector vecDir = info.GetDamageForce();
+			VectorNormalize( vecDir );
+			Vector vecBack = -vecDir;
+			Vector vecForward;
+			AngleVectors( GetLocalAngles(), &vecForward );
+			float flDot = DotProduct( vecForward, vecBack );
+			if ( flDot < 0.0f )
+			{
+				flDamage *= 0.15f;
+			}
+		}
+
 		if ( info.GetDamageType() & DMG_BLAST )
 		{
 			// this timing only accounts for weapon_grenade (with fuse of 1.5s)
@@ -1874,7 +1927,7 @@ void CSDKPlayer::Event_Killed( const CTakeDamageInfo &info )
 		{
 			if (pSDKAttacker->m_Shared.IsDiving() || pSDKAttacker->m_Shared.IsSliding() || pSDKAttacker->m_Shared.IsRolling() || pSDKAttacker->m_Shared.IsWallFlipping(true))
 				pSDKAttacker->m_iStuntKills++;
-			else if (info.GetDamageType() == DMG_CLUB)
+			if (info.GetDamageType() == DMG_CLUB)
 				pSDKAttacker->m_iBrawlKills++;
 		}
 
